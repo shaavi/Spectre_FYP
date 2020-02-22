@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[101]:
+# In[126]:
 
 
 import numpy as np
@@ -19,7 +19,7 @@ img = cv2.medianBlur(image,5)
 plt.imshow(img)
 
 
-# In[102]:
+# In[127]:
 
 
 #erosion using morphological operations
@@ -30,7 +30,7 @@ erosion = cv2.erode(th1, kernel, iterations = 4)
 plt.imshow(erosion)
 
 
-# In[103]:
+# In[128]:
 
 
 # perform a connected component analysis on the eroded image, then initialize a mask to store only the "large" components
@@ -58,14 +58,14 @@ for label in np.unique(labels):
 plt.imshow(mask1)
 
 
-# In[104]:
+# In[148]:
 
 
 mask = cv2.dilate(mask1,kernel,iterations = 6)
 plt.imshow(mask)
 
 
-# In[105]:
+# In[149]:
 
 
 #extract the brain using the mask
@@ -77,7 +77,7 @@ brain_img = img*mask2[:,:,np.newaxis]
 plt.imshow(brain_img)
 
 
-# In[106]:
+# In[150]:
 
 
 # Load image, grayscale, Otsu's threshold, and extract ROI
@@ -90,8 +90,7 @@ ROI = image[y:y+h, x:x+w]
 plt.imshow(ROI)
 
 
-
-# In[108]:
+# In[151]:
 
 
 # Color segmentation on ROI
@@ -102,13 +101,13 @@ mask = cv2.inRange(hsv, lower, upper)
 plt.imshow(mask)
 
 
-# In[109]:
+# In[152]:
 
 
 plt.imshow(hsv)
 
 
-# In[110]:
+# In[156]:
 
 
 # Crop left and right half of mask
@@ -120,15 +119,8 @@ right = mask[y:y+h, x+w:x+w+w]
 left_pixels = cv2.countNonZero(left)
 right_pixels = cv2.countNonZero(right)
 
-print('Left pixels:', left_pixels)
-print('Right pixels:', right_pixels)
-
-
-# In[111]:
-
-
 # Crop top and bottom half of mask
-x, y, w, h = 0, 0, mask.shape[0], mask.shape[1]//2
+x, y, w, h = 0, 0, ROI.shape[1], ROI.shape[0]//2
 bottom = mask[y+h:y+h+h, x:x+w]
 top = mask[y:y+h, x:x+w]
 
@@ -136,11 +128,8 @@ top = mask[y:y+h, x:x+w]
 top_pixels = cv2.countNonZero(top)
 bottom_pixels = cv2.countNonZero(bottom)
 
-print('Top pixels:', top_pixels)
-print('Bottom pixels:', bottom_pixels)
 
-
-# In[112]:
+# In[157]:
 
 
 if left_pixels > right_pixels:
@@ -154,51 +143,44 @@ else:
     print("Bottom")
 
 
-# In[113]:
+# In[158]:
 
 
 plt.imshow(left)
 
 
-# In[114]:
+# In[159]:
 
 
 plt.imshow(right)
 
 
-# In[115]:
+# In[160]:
 
 
 plt.imshow(top)
 
 
-# In[116]:
+# In[161]:
 
 
 plt.imshow(bottom)
 
 
-# In[117]:
+# In[162]:
 
 
 plt.imshow(mask)
 
 
-# In[124]:
+# In[167]:
 
-
-#img = cv2.imread('H:/FYP/interim/images/3322.jpg')
-#img = mask
-
-#gray_image = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
 
 # convert the grayscale image to binary image
 ret,thresh = cv2.threshold(mask,127,255,0)
  
 # calculate moments of binary image
 M = cv2.moments(thresh)
-
-I = cv2.moments(mask)
  
 # calculate x,y coordinate of center of tumor
 cX = int(M["m10"] / M["m00"])
@@ -210,33 +192,26 @@ print('tumor center:', cX, cY)
 iX = ROI.shape[1]//2
 iY = ROI.shape[0]//2
 print('image center:', iX, iY)
-    
-# put text and highlight the center
-#center = cv2.circle(mask, (iX, iY), 5, (22, 100, 8), -1)
-#cv2.putText(mask, "centroid", (cX - 25, cY - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (22, 100, 8), 2)
 
 # put text and highlight the center
-center = cv2.circle(mask, (cX, cY), 5, (22, 100, 80), -1)
-center = cv2.putText(center, "centroid", (cX - 25, cY - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (22, 100, 8), 2)
+center = cv2.circle(mask, (cX, cY), 5, (22, 100, 8), -1)
+#center = cv2.putText(center, "centroid", (cX - 25, cY - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (22, 100, 8), 2)
  
 center = cv2.circle(center, (iX, iY), 5, (22, 100, 8), -1)
-center = cv2.putText(center, "centroid", (iX - 25, iY - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (22, 100, 8), 2)
+#center = cv2.putText(center, "centroid", (iX - 25, iY - 25),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (22, 100, 8), 2)
  
-plt.imshow(center)
-
-
-# In[120]:
-
-#calculate distance of tumor from center
 import math
 p1 = [iX, iY]
 p2 = [cX, cY]
 distance = math.sqrt( ((p1[0]-p2[0])**2)+((p1[1]-p2[1])**2) )
 
+# display the image
+plt.imshow(center)
+
 print('distance = ', distance)
 
 
-# In[87]:
+# In[168]:
 
 
 print('Left pixels:', left_pixels)
