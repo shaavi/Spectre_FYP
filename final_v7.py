@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[19]:
+# In[20]:
 
 
 import numpy as np
@@ -20,7 +20,7 @@ img = cv2.medianBlur(image,5)
 plt.imshow(img)
 
 
-# In[20]:
+# In[21]:
 
 
 #erosion using morphological operations
@@ -31,7 +31,7 @@ erosion = cv2.erode(th1, kernel, iterations = 5)
 plt.imshow(erosion)
 
 
-# In[21]:
+# In[22]:
 
 
 # perform a connected component analysis on the eroded image, then initialize a mask to store only the "large" components
@@ -47,14 +47,14 @@ fig, ax = plt.subplots(nrows=1, ncols=1,  figsize = (4, 4))
 plt.imshow(mask1)
 
 
-# In[22]:
+# In[23]:
 
 
 mask = cv2.dilate(mask1,kernel,iterations = 7)
 plt.imshow(mask)
 
 
-# In[23]:
+# In[24]:
 
 
 #extract the brain using the mask
@@ -69,7 +69,7 @@ brain_img = img*mask2[:,:,np.newaxis]
 plt.imshow(brain_img)
 
 
-# In[24]:
+# In[25]:
 
 
 # Load image, grayscale, Otsu's threshold, and extract ROI
@@ -81,7 +81,7 @@ ROI = image[y:y+h, x:x+w]
 plt.imshow(ROI)
 
 
-# In[25]:
+# In[26]:
 
 
 # Color segmentation on ROI
@@ -98,7 +98,7 @@ mask = cv2.dilate(mask,kernel,iterations = 4)
 plt.imshow(mask)
 
 
-# In[26]:
+# In[27]:
 
 
 # Crop left and right half of mask
@@ -122,7 +122,7 @@ top_pixels = cv2.countNonZero(top)
 bottom_pixels = cv2.countNonZero(bottom)
 
 
-# In[30]:
+# In[28]:
 
 
 # convert the grayscale image to binary image
@@ -186,7 +186,7 @@ else:
 print(location)
 
 
-# In[28]:
+# In[29]:
 
 
 image_plane = "axial"
@@ -220,4 +220,52 @@ if image_plane == "coronal":
         print("Schwannoma, meningioma, epidermoid, Hemangioblastoma, astrocytoma, Subependymoma, choroid plexus papilloma, ependymoma, Meningioma, ependymoma, central neurocytoma, subependymoma")
     elif location == "bottom right":
         print("Schwannoma, meningioma, epidermoid, Hemangioblastoma, astrocytoma, Subependymoma, choroid plexus papilloma, ependymoma, Meningioma, ependymoma, central neurocytoma, subependymoma")
+
+
+# In[30]:
+
+
+# Dispalying detected tumor in the original MRI
+
+# noise removal
+kernel = np.ones((3,3),np.uint8)
+opening = cv2.morphologyEx(tumor_img,cv2.MORPH_OPEN,kernel, iterations = 2)
+
+# sure background area
+sure_bg = cv2.dilate(opening,kernel,iterations=3)
+
+# Finding sure foreground area
+dist_transform = cv2.distanceTransform(opening,cv2.DIST_L2,5)
+ret, sure_fg = cv2.threshold(dist_transform,0.7*dist_transform.max(),255,0)
+
+# Finding unknown region
+sure_fg = np.uint8(sure_fg)
+unknown = cv2.subtract(sure_bg,sure_fg)
+
+# Marker labelling
+et, markers = cv2.connectedComponents(sure_fg)
+
+# Add one to all labels so that sure background is not 0, but 1
+markers = markers+1
+
+# Now, mark the region of unknown with zero
+markers[unknown==255] = 0
+
+markers = cv2.watershed(ROI,markers)
+ROI[markers == -1] = [255,0,0]
+
+plt.imshow(markers)
+plt.imshow(ROI)
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
